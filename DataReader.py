@@ -1,5 +1,6 @@
 import pandas as pd
 
+# get values from the dataset
 def get_val(i):
     data = pd.read_csv("/Users/vikassp/Desktop/US_data.csv")
     first_tag = data['tags'][i]
