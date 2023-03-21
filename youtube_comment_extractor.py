@@ -1,9 +1,9 @@
 import yaml
 from yaml.loader import SafeLoader
 import os
-import json
 import googleapiclient.discovery
 from DataReader import get_val
+from sentiment_analysis_for_comments import get_sentiment_socre
 
 # Open the file and load the file
 def get_access_key():
@@ -34,13 +34,17 @@ def main():
     youtube = googleapiclient.discovery.build(
         api_service_name, api_version, developerKey = DEVELOPER_KEY)
     final_data =[]
+    final_polarity = []
+    final_subjectivity = []
     EMPTY_LIST = []
+    NOT_FOUND = 'N/A'
     video_not_found = 0
     for i in range(0, 4547):
         video_id = get_val(i)[2]
         try:
             response = get_response(youtube, video_id)
             res = []
+
             # formatted_res = json.dumps(response,indent=2)
             # print(type(response))
             count = 0
@@ -50,19 +54,34 @@ def main():
                 # print(i['snippet']['topLevelComment']['snippet']['textDisplay'])
                 # print("\n--------------\n")
             # print(str(count) + " comments fetched for video id: " + video_id)
+            subjectivity = get_sentiment_socre(res)[1]
+            polarity = get_sentiment_socre(res)[0]
+            final_polarity.append(polarity)
+            final_subjectivity.append(subjectivity)
             final_data.append(res)
             # print(final_data)
         except:
             video_not_found +=1
             final_data.append(EMPTY_LIST)
+            final_polarity.append(NOT_FOUND)
+            final_subjectivity.append(NOT_FOUND)
             print(video_id)
-            # print("error!")
 
+    # Create file for comments
     file = open('/Users/vikassp/Desktop/comments.txt', 'w')
     for item in final_data:
         file.write(str(item) + '\n')
-    # for i in final_data:
-    #     print(i)
+
+    # Create file for polarity based on sentiment analysis
+    file = open('/Users/vikassp/Desktop/polarity.txt', 'w')
+    for item in final_polarity:
+        file.write(str(item) + '\n')
+
+    # Create file for subjectivity based on sentiment analysis
+    file = open('/Users/vikassp/Desktop/subjectivity.txt', 'w')
+    for item in final_subjectivity:
+        file.write(str(item) + '\n')
+
     print(str(video_not_found) +" videos not found or are private!")
 
 if __name__ == "__main__":
